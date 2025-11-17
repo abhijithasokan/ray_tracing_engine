@@ -1,10 +1,4 @@
-#pragma once
-
-#include <iostream>
-#include "vec3.h"
-
-
-using Color = Vec3;
+#include <raytracer/color.h>
 
 void write_color(std::ostream& out, const Color& cc) {
     auto r = cc.x();
@@ -18,4 +12,5 @@ void write_color(std::ostream& out, const Color& cc) {
     // Write out the pixel color components.
     out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
 }
+
 

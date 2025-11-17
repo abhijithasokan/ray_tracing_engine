@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vec3.h"
+#include <raytracer/vec3.h>
 
 class Ray {
     private: 

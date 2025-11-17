@@ -2,8 +2,9 @@
 
 #include <optional>
 
-#include "ray.h"
-#include "vec3.h"
+#include <raytracer/common.h>
+#include <raytracer/ray.h>
+#include <raytracer/vec3.h>
 
 struct HitRecord {
 public:
@@ -21,5 +22,5 @@ public:
 
 class Hittable {
     public:
-        virtual std::optional<HitRecord> hit(const Ray& ray, double tmin, double tmax) const = 0;
+        virtual std::optional<HitRecord> hit(const Ray& ray, Interval interval) const = 0;
 };
