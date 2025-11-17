@@ -11,7 +11,7 @@ int main() {
     int image_width = 400;
     
     auto camera = Camera::create_default_camera(RenderImageParams(image_width, aspect_ratio));
-
+    camera.set_samples_per_pixel(10);
     // World
     HittableList world;
     world.add(make_shared<Sphere>(Point(0,0,-1), 0.5));

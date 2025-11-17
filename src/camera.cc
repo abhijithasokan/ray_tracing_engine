@@ -7,6 +7,7 @@
 #include <raytracer/color.h>
 #include <raytracer/hittable.h>
 #include <raytracer/hittable_list.h>
+#include <raytracer/rand_utils.h>
 
 
 void Camera::initialize_pixel_deltas_and_location() {
@@ -36,16 +37,25 @@ Color Camera::ray_color(const Ray& ray, const HittableList& world) {
     return (1.0-a)*Color(1.0, 1.0, 1.0) + a*Color(0.5, 0.7, 1.0);
 }
 
+Ray Camera::get_ray(u_short i, u_short j) const {
+    auto offset_u = random_double(-0.5, 0.5);
+    auto offset_v = random_double(-0.5, 0.5);
+
+    auto pixel_location = pixel00_location + (i + offset_u)*pixel_delta_u + (j + offset_v)*pixel_delta_v;
+    return Ray(origin, pixel_location - origin);
+}
 
 void Camera::render_scene(const HittableList& world) {
     std::cout << "P3\n" << img_params.width() << ' ' << img_params.height() << "\n255\n";
-    for(u_short j = 0; j < img_params.height(); ++j) {
-        std::clog << "\rScanlines remaining: " << (img_params.height() - j) << ' ' << std::flush;
-        for(u_short i = 0; i < img_params.width(); ++i) {
-            auto pixel_center = pixel00_location + (i * pixel_delta_u) + (j * pixel_delta_v);
-            Ray ray(origin, pixel_center - origin);
-            Color pixel_color = ray_color(ray, world);
-
+    for(u_short jj = 0; jj < img_params.height(); ++jj) {
+        std::clog << "\rScanlines remaining: " << (img_params.height() - jj) << ' ' << std::flush;
+        for(u_short ii = 0; ii < img_params.width(); ++ii) {
+            Color pixel_color(0, 0, 0);
+            for(u_short sample_idx = 0; sample_idx < samples_per_pixel; ++sample_idx) {
+                auto ray = get_ray(ii, jj);
+                pixel_color += ray_color(ray, world);
+            } 
+            pixel_color /= double(samples_per_pixel);
             write_color(std::cout, pixel_color);
         }
     }

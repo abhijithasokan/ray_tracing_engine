@@ -51,6 +51,7 @@ private:
     // things related to rendering
     Vec3 pixel_delta_u, pixel_delta_v;
     Point pixel00_location; // location of the upper left pixel
+    ushort samples_per_pixel = 1;
 
 public:    
     Camera(const Point& origin, const CameraIntrinsicParameters& cam_params, const RenderImageParams& img_params) 
@@ -65,12 +66,13 @@ public:
     void render_scene(const HittableList& world);
 
     static Camera create_default_camera(const RenderImageParams& img_params);
-    
+    constexpr ushort get_samples_per_pixel() const { return samples_per_pixel; }
+    constexpr void set_samples_per_pixel(ushort samples) { samples_per_pixel = samples; }
 
 private:
     void initialize_pixel_deltas_and_location(); 
     Color ray_color(const Ray& ray, const HittableList& world);
-
+    Ray get_ray(u_short i, u_short j) const;
 };
 
 

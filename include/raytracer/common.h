@@ -28,5 +28,10 @@ public:
     constexpr double size() const { return _max - _min; }
     constexpr bool contains(double xx) const { return _min <= xx && xx <= _max; }
     constexpr bool surrounds(double xx) const { return _min < xx && xx < _max; }
+    constexpr double clamp(double x) const {
+        if (x < _min) return _min;
+        if (x > _max) return _max;
+        return x;
+    }
     static const Interval empty, universe;
 };
