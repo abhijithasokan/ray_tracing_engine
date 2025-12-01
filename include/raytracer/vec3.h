@@ -103,11 +103,19 @@ class Vec3 {
             v /= v.len();
             return v;
         }
+
+        static Vec3 random(double min, double max);
+        static Vec3 random();
+        static Vec3 random_unit_vector();
+        static Vec3 random_on_hemisphere(const Vec3& normal);
 };
 
 using Point = Vec3;
 
 
 
-inline Vec3 operator*(const Vec3& vec, double mm) { return mm * vec; } 
+inline Vec3 operator*(const Vec3& vec, double mm) { return mm * vec; }
 inline Vec3 operator/(const Vec3& vec, double mm) { return (1/mm) * vec; }
+
+static constexpr const double VERY_SMALL_POSITIVE_DOUBLE = 1e-160;
+

@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(raytracer_lib
     src/common.cc
+    src/vec3.cc
     src/color.cc
     src/sphere.cc
     src/hittable_list.cc

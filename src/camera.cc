@@ -29,7 +29,10 @@ void Camera::initialize_pixel_deltas_and_location() {
 Color Camera::ray_color(const Ray& ray, const HittableList& world) {
     auto hit_rec = world.hit(ray, Interval(0, infinity));
     if(hit_rec) {
-        return 0.5 * (hit_rec->normal + Color(1, 1, 1));
+        // taking all objects to be diffuse
+        auto direction = Vec3::random_on_hemisphere(hit_rec->normal);
+        constexpr double ambient_coefficient = 0.5;
+        return ambient_coefficient * ray_color(Ray(hit_rec->p, direction), world);
     }
 
     auto unit_vec = unit_vector(ray.get_direction());
