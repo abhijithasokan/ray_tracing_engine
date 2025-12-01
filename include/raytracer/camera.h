@@ -52,6 +52,9 @@ private:
     Vec3 pixel_delta_u, pixel_delta_v;
     Point pixel00_location; // location of the upper left pixel
     ushort samples_per_pixel = 1;
+    int max_depth = 10;
+
+    constexpr static double SURFACE_ACHNE_OFFSET = 1e-3;
 
 public:    
     Camera(const Point& origin, const CameraIntrinsicParameters& cam_params, const RenderImageParams& img_params) 
@@ -71,7 +74,7 @@ public:
 
 private:
     void initialize_pixel_deltas_and_location(); 
-    Color ray_color(const Ray& ray, const HittableList& world);
+    Color ray_color(const Ray& ray, const HittableList& world, int depth);
     Ray get_ray(u_short i, u_short j) const;
 };
 

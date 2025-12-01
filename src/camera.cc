@@ -26,13 +26,19 @@ void Camera::initialize_pixel_deltas_and_location() {
 
 
 
-Color Camera::ray_color(const Ray& ray, const HittableList& world) {
-    auto hit_rec = world.hit(ray, Interval(0, infinity));
+Color Camera::ray_color(const Ray& ray, const HittableList& world, int depth) {
+    if(depth <= 0) // when we exceed the ray bounce limit, we just return black
+        return Color(0, 0, 0);
+
+    // we add SURFACE_ACHNE_OFFSET to avoid hitting very close surfaces
+    // which can be the case when the computed ray origin, due to floating point inaccuracies, 
+    // lies exactly on/inside the surface
+    auto hit_rec = world.hit(ray, Interval(0 + SURFACE_ACHNE_OFFSET, infinity));
     if(hit_rec) {
         // taking all objects to be diffuse
         auto direction = Vec3::random_on_hemisphere(hit_rec->normal);
         constexpr double ambient_coefficient = 0.5;
-        return ambient_coefficient * ray_color(Ray(hit_rec->p, direction), world);
+        return ambient_coefficient * ray_color(Ray(hit_rec->p, direction), world, depth - 1);
     }
 
     auto unit_vec = unit_vector(ray.get_direction());
@@ -56,7 +62,7 @@ void Camera::render_scene(const HittableList& world) {
             Color pixel_color(0, 0, 0);
             for(u_short sample_idx = 0; sample_idx < samples_per_pixel; ++sample_idx) {
                 auto ray = get_ray(ii, jj);
-                pixel_color += ray_color(ray, world);
+                pixel_color += ray_color(ray, world, max_depth);
             } 
             pixel_color /= double(samples_per_pixel);
             write_color(std::cout, pixel_color);
