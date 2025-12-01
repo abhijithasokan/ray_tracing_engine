@@ -35,10 +35,14 @@ Color Camera::ray_color(const Ray& ray, const HittableList& world, int depth) {
     // lies exactly on/inside the surface
     auto hit_rec = world.hit(ray, Interval(0 + SURFACE_ACHNE_OFFSET, infinity));
     if(hit_rec) {
-        // taking all objects to be diffuse
-        auto direction = Vec3::random_on_hemisphere(hit_rec->normal);
+        // taking all objects to be diffuse (lambertian non-uniform)
         constexpr double ambient_coefficient = 0.5;
-        return ambient_coefficient * ray_color(Ray(hit_rec->p, direction), world, depth - 1);
+        // auto center_of_unit_sphere_on_top_of_hit_point = hit_rec->p + hit_rec->normal;
+        // auto pt_on_sphere = center_of_unit_sphere_on_top_of_hit_point + Vec3::random_unit_vector();
+        // auto new_ray_dir = pt_on_sphere - hit_rec->p;
+        auto new_ray_dir = hit_rec->normal + Vec3::random_unit_vector();
+        auto new_ray = Ray(hit_rec->p, new_ray_dir);
+        return ambient_coefficient * ray_color(new_ray, world, depth - 1);
     }
 
     auto unit_vec = unit_vector(ray.get_direction());
