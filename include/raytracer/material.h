@@ -24,8 +24,9 @@ class Lambertian : public Material {
 class Metal : public Material {
     private:
         Color albedo;
+        double fuzz;
 
     public:
-        Metal(const Color& a) : albedo(a) {}
+        Metal(const Color& a, double f) : albedo(a), fuzz(f) {}
         std::optional<std::pair<Ray, Color>> scatter(const Ray& ray_in, const HitRecord& rec) const override;
 };

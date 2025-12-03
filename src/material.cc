@@ -10,6 +10,9 @@ std::optional<std::pair<Ray, Color>> Lambertian::scatter(const Ray& ray_in, cons
 
 std::optional<std::pair<Ray, Color>> Metal::scatter(const Ray& ray_in, const HitRecord& rec) const {
     auto reflected = reflect(ray_in.get_direction(), rec.normal);
+    reflected = unit_vector(reflected) + fuzz * Vec3::random_unit_vector();
     Ray scattered_ray(rec.p, reflected);
+    if(dot(scattered_ray.get_direction(), rec.normal) <= 0) // ray is scattered inside the surface
+        return std::nullopt;
     return std::make_optional(std::make_pair(scattered_ray, albedo));
 }
