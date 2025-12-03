@@ -1,4 +1,6 @@
+#include <raytracer/rand_utils.h>
 #include <raytracer/material.h>
+
 
 std::optional<std::pair<Ray, Color>> Lambertian::scatter(const Ray& ray_in, const HitRecord& rec) const {
     auto scatter_direction = rec.normal + Vec3::random_unit_vector();
@@ -23,8 +25,10 @@ std::optional<std::pair<Ray, Color>> Dielectric::scatter(const Ray& ray_in, cons
     double ri = rec.front_face ? (1.0 / refraction_index) : refraction_index;
     auto unit_direction = unit_vector(ray_in.get_direction());
     
-    auto is_refracted = can_refract(unit_direction, rec.normal, ri);
-    Vec3 direction = is_refracted ? refract(unit_direction, rec.normal, ri) : reflect(unit_direction, rec.normal);
+    auto cosine = std::fmin(dot(-unit_direction, rec.normal), 1.0);
+    auto is_reflected = (!can_refract(unit_direction, rec.normal, ri)) ||
+                        (reflectance(cosine, ri) < random_double());
+    Vec3 direction = is_reflected ? reflect(unit_direction, rec.normal) : refract(unit_direction, rec.normal, ri);
     Ray scattered_ray(rec.p, direction);
     return std::make_optional(std::make_pair(scattered_ray, attenuation));
 }
@@ -35,4 +39,11 @@ bool Dielectric::can_refract(const Vec3& unit_direction, const Vec3& normal, dou
 
     bool cannot_refract = ri * sin_theta > 1.0;
     return !cannot_refract;
+}
+
+double Dielectric::reflectance(double cosine, double ri) {
+    // Use Schlick's approximation for reflectance.
+    auto r0 = (1 - ri) / (1 + ri);
+    r0 = r0*r0;
+    return r0 + (1-r0)*std::pow((1 - cosine),5);
 }

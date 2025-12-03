@@ -41,4 +41,5 @@ class Dielectric : public Material {
 
     protected:
         bool can_refract(const Vec3& unit_direction, const Vec3& normal, double ri) const;
+        static double reflectance(double cosine, double ri);
 };
