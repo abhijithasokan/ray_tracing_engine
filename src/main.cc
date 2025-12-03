@@ -14,11 +14,13 @@ int main() {
     Point look_from(-2, 2, 1);
     Point look_at(0, 0, -1);
     double vpov = 20.0; // vertical point of view in degrees
+    double defocus_angle = 10.0; // in degrees
+    double focus_dist = 3.4;
     
     auto camera = Camera::create_camera(
         look_from, 
         look_at,
-        vpov,
+        vpov, defocus_angle, focus_dist,
         RenderImageParams(image_width, aspect_ratio)
     );
 

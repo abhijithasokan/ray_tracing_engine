@@ -27,8 +27,11 @@ void Camera::initialize_pixel_deltas_and_location() {
     pixel_delta_v = viewport_v / img_params.height();
 
     // Calculate the location of the upper left pixel.
-    auto viewport_upper_left = look_from - cam_params.focal_length() * w - viewport_u/2 - viewport_v/2;
+    auto viewport_upper_left = look_from - cam_params.focus_dist() * w - viewport_u/2 - viewport_v/2;
     pixel00_location = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+    defocus_disk_u = u * cam_params.compute_defocus_radius();
+    defocus_disk_v = v * cam_params.compute_defocus_radius();
 }
 
 
@@ -61,7 +64,12 @@ Ray Camera::get_ray(u_short i, u_short j) const {
     auto offset_v = random_double(-0.5, 0.5);
 
     auto pixel_location = pixel00_location + (i + offset_u)*pixel_delta_u + (j + offset_v)*pixel_delta_v;
-    return Ray(look_from, pixel_location - look_from);
+
+    auto ray_origin = look_from;
+    if(cam_params.compute_defocus_radius() > 0.0) 
+        ray_origin += defocus_disk_sample();
+
+    return Ray(ray_origin, pixel_location - ray_origin);
 }
 
 void Camera::render_scene(const HittableList& world) {
@@ -84,16 +92,20 @@ void Camera::render_scene(const HittableList& world) {
 
 Camera Camera::create_camera(
     const Point& look_from, const Point& look_at, 
-    double vpov,
+    double vpov, double defocus_angle, double focus_dist,
     const RenderImageParams& img_params
 ) {
     Vec3 vup(0, 1, 0); // "view up" vector
-
-    double focal_length = (look_from - look_at).len();
     double rr = (double(img_params.width()) / img_params.height());
     
-    CameraIntrinsicParameters cam_params(focal_length, vpov, rr);
+    CameraIntrinsicParameters cam_params(focus_dist, vpov, defocus_angle, rr);
     Point origin(0, 0, 0);
     
     return Camera(look_from, look_at, vup, cam_params, img_params);
+}
+
+
+Vec3 Camera::defocus_disk_sample() const {
+    auto rd = random_in_unit_disk();
+    return rd.x() * defocus_disk_u + rd.y() * defocus_disk_v;
 }

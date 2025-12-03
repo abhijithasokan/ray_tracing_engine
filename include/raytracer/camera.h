@@ -11,22 +11,27 @@ using u_short = unsigned short int;
 
 class CameraIntrinsicParameters {
 private:
-    double _focal_length;
+    double _focus_dist;
     double _vp_height, _vp_width;
     double _vertical_fov; // field of view in degrees
+    double _defocus_angle; // in degrees
 
 public:
-    constexpr CameraIntrinsicParameters(double focal_len, double vfov, double rr)
-    : _focal_length(focal_len), _vertical_fov(vfov) {
+    constexpr CameraIntrinsicParameters(double focus_dist, double vfov, double defocus_angle, double rr)
+    : _focus_dist(focus_dist), _vertical_fov(vfov), _defocus_angle(defocus_angle) {
         auto theta = degrees_to_radians(_vertical_fov);
-        _vp_height = 2.0 * std::tan(theta / 2.0) * _focal_length;
+        _vp_height = 2.0 * std::tan(theta / 2.0) * _focus_dist;
         _vp_width = rr * _vp_height;
     }
 
-    constexpr double focal_length() const { return _focal_length; }
+    constexpr double focus_dist() const { return _focus_dist; }
     constexpr double vp_height() const { return _vp_height; }
     constexpr double vp_width() const { return _vp_width; }
     constexpr double vertical_fov() const { return _vertical_fov; }
+    constexpr double defocus_angle() const { return _defocus_angle; }
+    constexpr double compute_defocus_radius() const {
+        return _focus_dist * std::tan(degrees_to_radians(_defocus_angle) / 2.0);
+    }
 };
 
 
@@ -61,6 +66,8 @@ private:
     // things related to rendering
     Vec3 pixel_delta_u, pixel_delta_v;
     Point pixel00_location; // location of the upper left pixel
+    Vec3 defocus_disk_u, defocus_disk_v;
+
     ushort samples_per_pixel = 1;
     int max_depth = 50;
 
@@ -81,7 +88,8 @@ public:
     void render_scene(const HittableList& world);
 
     static Camera create_camera(const Point& look_from, const Point& look_at, 
-        double vpov, const RenderImageParams& img_params);
+        double vpov, double defocus_angle, double focus_dist,
+        const RenderImageParams& img_params);
     constexpr ushort get_samples_per_pixel() const { return samples_per_pixel; }
     constexpr void set_samples_per_pixel(ushort samples) { samples_per_pixel = samples; }
 
@@ -90,6 +98,7 @@ private:
     void initialize_camera_coordinate_system();
     Color ray_color(const Ray& ray, const HittableList& world, int depth);
     Ray get_ray(u_short i, u_short j) const;
+    Vec3 defocus_disk_sample() const;
 };
 
 
