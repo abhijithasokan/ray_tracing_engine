@@ -11,16 +11,23 @@
 #include <raytracer/rand_utils.h>
 
 
+void Camera::initialize_camera_coordinate_system() {
+    w = -unit_vector(look_at - look_from);
+    u = unit_vector(cross(vup, w));
+    v = cross(w, u);
+}
+
+
 void Camera::initialize_pixel_deltas_and_location() {
-    auto viewport_u = Vec3(cam_params.vp_width(), 0, 0);
-    auto viewport_v = Vec3(0, -cam_params.vp_height(), 0);
+    auto viewport_u = cam_params.vp_width() * u;
+    auto viewport_v = cam_params.vp_height() * -v;
 
     // Calculate the horizontal and vertical delta vectors from pixel to pixel.
     pixel_delta_u = viewport_u / img_params.width();
     pixel_delta_v = viewport_v / img_params.height();
 
     // Calculate the location of the upper left pixel.
-    auto viewport_upper_left = origin - Vec3(0, 0, cam_params.focal_length()) - viewport_u/2 - viewport_v/2;
+    auto viewport_upper_left = look_from - cam_params.focal_length() * w - viewport_u/2 - viewport_v/2;
     pixel00_location = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 }
 
@@ -54,7 +61,7 @@ Ray Camera::get_ray(u_short i, u_short j) const {
     auto offset_v = random_double(-0.5, 0.5);
 
     auto pixel_location = pixel00_location + (i + offset_u)*pixel_delta_u + (j + offset_v)*pixel_delta_v;
-    return Ray(origin, pixel_location - origin);
+    return Ray(look_from, pixel_location - look_from);
 }
 
 void Camera::render_scene(const HittableList& world) {
@@ -75,13 +82,18 @@ void Camera::render_scene(const HittableList& world) {
 }
 
 
-Camera Camera::create_default_camera(const RenderImageParams& img_params) {
-    double focal_length = 1.0;
-    double vp_height = 2.0;
-    double vp_width = vp_height * (double(img_params.width()) / img_params.height());
+Camera Camera::create_camera(
+    const Point& look_from, const Point& look_at, 
+    double vpov,
+    const RenderImageParams& img_params
+) {
+    Vec3 vup(0, 1, 0); // "view up" vector
+
+    double focal_length = (look_from - look_at).len();
+    double rr = (double(img_params.width()) / img_params.height());
     
-    CameraIntrinsicParameters cam_params(focal_length, vp_width, vp_height);
+    CameraIntrinsicParameters cam_params(focal_length, vpov, rr);
     Point origin(0, 0, 0);
     
-    return Camera(origin, cam_params, img_params);
+    return Camera(look_from, look_at, vup, cam_params, img_params);
 }

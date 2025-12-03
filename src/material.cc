@@ -27,7 +27,7 @@ std::optional<std::pair<Ray, Color>> Dielectric::scatter(const Ray& ray_in, cons
     
     auto cosine = std::fmin(dot(-unit_direction, rec.normal), 1.0);
     auto is_reflected = (!can_refract(unit_direction, rec.normal, ri)) ||
-                        (reflectance(cosine, ri) < random_double());
+                        (reflectance(cosine, ri) > random_double());
     Vec3 direction = is_reflected ? reflect(unit_direction, rec.normal) : refract(unit_direction, rec.normal, ri);
     Ray scattered_ray(rec.p, direction);
     return std::make_optional(std::make_pair(scattered_ray, attenuation));

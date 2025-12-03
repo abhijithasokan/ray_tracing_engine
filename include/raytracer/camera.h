@@ -13,15 +13,20 @@ class CameraIntrinsicParameters {
 private:
     double _focal_length;
     double _vp_height, _vp_width;
+    double _vertical_fov; // field of view in degrees
 
 public:
-    constexpr CameraIntrinsicParameters(double focal_len, double vp_width, double vp_height) 
-    : _focal_length(focal_len), _vp_width(vp_width), _vp_height(vp_height) {
+    constexpr CameraIntrinsicParameters(double focal_len, double vfov, double rr)
+    : _focal_length(focal_len), _vertical_fov(vfov) {
+        auto theta = degrees_to_radians(_vertical_fov);
+        _vp_height = 2.0 * std::tan(theta / 2.0) * _focal_length;
+        _vp_width = rr * _vp_height;
     }
 
     constexpr double focal_length() const { return _focal_length; }
     constexpr double vp_height() const { return _vp_height; }
     constexpr double vp_width() const { return _vp_width; }
+    constexpr double vertical_fov() const { return _vertical_fov; }
 };
 
 
@@ -46,34 +51,43 @@ class Camera {
 private:
     CameraIntrinsicParameters cam_params;
     RenderImageParams img_params;
-    Point origin;
+
+    // camera location and orientation
+    Point look_from;
+    Point look_at;
+    Vec3 vup; // "view up" vector
+    Vec3 u, v, w; // camera coordinate system basis vectors
 
     // things related to rendering
     Vec3 pixel_delta_u, pixel_delta_v;
     Point pixel00_location; // location of the upper left pixel
     ushort samples_per_pixel = 1;
-    int max_depth = 10;
+    int max_depth = 50;
 
     constexpr static double SURFACE_ACHNE_OFFSET = 1e-3;
 
-public:    
-    Camera(const Point& origin, const CameraIntrinsicParameters& cam_params, const RenderImageParams& img_params) 
-    : origin(origin), cam_params(cam_params), img_params(img_params) {
+private:    
+    Camera(const Point& look_from, const Point& look_at, const Vec3& vup, const CameraIntrinsicParameters& cam_params, const RenderImageParams& img_params) 
+    : look_from(look_from), look_at(look_at), vup(vup), cam_params(cam_params), img_params(img_params) {
         initialize_camera();
     }
 
     void initialize_camera() {
+        initialize_camera_coordinate_system();
         initialize_pixel_deltas_and_location();
     }
 
+public:
     void render_scene(const HittableList& world);
 
-    static Camera create_default_camera(const RenderImageParams& img_params);
+    static Camera create_camera(const Point& look_from, const Point& look_at, 
+        double vpov, const RenderImageParams& img_params);
     constexpr ushort get_samples_per_pixel() const { return samples_per_pixel; }
     constexpr void set_samples_per_pixel(ushort samples) { samples_per_pixel = samples; }
 
 private:
     void initialize_pixel_deltas_and_location(); 
+    void initialize_camera_coordinate_system();
     Color ray_color(const Ray& ray, const HittableList& world, int depth);
     Ray get_ray(u_short i, u_short j) const;
 };
