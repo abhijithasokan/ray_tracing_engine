@@ -125,5 +125,13 @@ inline Vec3 reflect(const Vec3& in_vec, const Vec3& normal) {
     return in_vec - 2*dot(in_vec, normal)*normal;
 }
 
+// Code adapted from https://raytracing.github.io/books/RayTracingInOneWeekend.html#refractions/refraction
+inline Vec3 refract(const Vec3& uv, const Vec3& n, double ri) {
+    auto cos_theta = std::fmin(dot(-uv, n), 1.0);
+    Vec3 r_out_perp =  ri * (uv + cos_theta*n);
+    Vec3 r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_perp.len_squared())) * n;
+    return r_out_perp + r_out_parallel;
+}
+
 static constexpr const double VERY_SMALL_POSITIVE_DOUBLE = 1e-160;
 

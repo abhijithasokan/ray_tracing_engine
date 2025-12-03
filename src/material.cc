@@ -16,3 +16,23 @@ std::optional<std::pair<Ray, Color>> Metal::scatter(const Ray& ray_in, const Hit
         return std::nullopt;
     return std::make_optional(std::make_pair(scattered_ray, albedo));
 }
+
+std::optional<std::pair<Ray, Color>> Dielectric::scatter(const Ray& ray_in, const HitRecord& rec) const {
+    Color attenuation(1.0, 1.0, 1.0); // no attenuation for dielectric materials
+
+    double ri = rec.front_face ? (1.0 / refraction_index) : refraction_index;
+    auto unit_direction = unit_vector(ray_in.get_direction());
+    
+    auto is_refracted = can_refract(unit_direction, rec.normal, ri);
+    Vec3 direction = is_refracted ? refract(unit_direction, rec.normal, ri) : reflect(unit_direction, rec.normal);
+    Ray scattered_ray(rec.p, direction);
+    return std::make_optional(std::make_pair(scattered_ray, attenuation));
+}
+
+bool Dielectric::can_refract(const Vec3& unit_direction, const Vec3& normal, double ri) const {
+    double cos_theta = std::fmin(dot(-unit_direction, normal), 1.0);
+    double sin_theta = std::sqrt(1.0 - cos_theta*cos_theta);
+
+    bool cannot_refract = ri * sin_theta > 1.0;
+    return !cannot_refract;
+}

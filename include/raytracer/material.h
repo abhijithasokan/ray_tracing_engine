@@ -30,3 +30,15 @@ class Metal : public Material {
         Metal(const Color& a, double f) : albedo(a), fuzz(f) {}
         std::optional<std::pair<Ray, Color>> scatter(const Ray& ray_in, const HitRecord& rec) const override;
 };
+
+class Dielectric : public Material {
+    private:
+        double refraction_index;
+
+    public:
+        Dielectric(double ri) : refraction_index(ri) {}
+        std::optional<std::pair<Ray, Color>> scatter(const Ray& ray_in, const HitRecord& rec) const override;
+
+    protected:
+        bool can_refract(const Vec3& unit_direction, const Vec3& normal, double ri) const;
+};
