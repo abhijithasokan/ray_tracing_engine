@@ -1,10 +1,13 @@
 #pragma once
 
 #include <optional>
+#include <memory>
 
 #include <raytracer/common.h>
 #include <raytracer/ray.h>
 #include <raytracer/vec3.h>
+
+class Material; 
 
 struct HitRecord {
 public:
@@ -12,6 +15,7 @@ public:
     Vec3 normal;
     double tt; // time
     bool front_face;
+    std::shared_ptr<Material> mat_ptr;
 
     void set_face_normal(const Ray& r, const Vec3& outward_normal) {
         front_face = dot(r.get_direction(), outward_normal) < 0;

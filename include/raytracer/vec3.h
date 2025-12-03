@@ -66,6 +66,11 @@ class Vec3 {
             return std::sqrt(len_squared());
         }
 
+        bool near_zero() const { 
+            constexpr auto sv = 1e-8;
+            return (std::fabs(ele[0]) < sv) && (std::fabs(ele[1]) < sv) && (std::fabs(ele[2]) < sv);
+        }
+
         // Friend functions
         friend Vec3 operator*(double t, Vec3 v) { 
             v *= t;
@@ -116,6 +121,9 @@ using Point = Vec3;
 
 inline Vec3 operator*(const Vec3& vec, double mm) { return mm * vec; }
 inline Vec3 operator/(const Vec3& vec, double mm) { return (1/mm) * vec; }
+inline Vec3 reflect(const Vec3& in_vec, const Vec3& normal) {
+    return in_vec - 2*dot(in_vec, normal)*normal;
+}
 
 static constexpr const double VERY_SMALL_POSITIVE_DOUBLE = 1e-160;
 

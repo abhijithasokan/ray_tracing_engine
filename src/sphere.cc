@@ -29,6 +29,7 @@ std::optional<HitRecord> Sphere::hit(const Ray& ray, Interval interval) const {
     HitRecord hit_rec;
     hit_rec.p = ray.at(tt);
     hit_rec.tt = tt;
+    hit_rec.mat_ptr = mat_ptr;
     
     auto outward_normal = (hit_rec.p - center) / radius;
     hit_rec.set_face_normal(ray, outward_normal);

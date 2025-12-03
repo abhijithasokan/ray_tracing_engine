@@ -8,6 +8,7 @@ add_library(raytracer_lib
     src/common.cc
     src/vec3.cc
     src/color.cc
+    src/material.cc
     src/sphere.cc
     src/hittable_list.cc
     src/camera.cc
