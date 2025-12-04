@@ -79,7 +79,8 @@ Ray Camera::get_ray(u_short i, u_short j) const {
     if(cam_params.compute_defocus_radius() > 0.0) 
         ray_origin += defocus_disk_sample();
 
-    return Ray(ray_origin, pixel_location - ray_origin);
+    auto ray_start_time = random_double(0.0, 1.0); // for motion blur feature
+    return Ray(ray_origin, pixel_location - ray_origin, ray_start_time);
 }
 
 void Camera::render_scene(const HittableList& world) {

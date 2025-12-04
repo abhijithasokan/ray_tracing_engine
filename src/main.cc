@@ -46,7 +46,7 @@ void scene_3_spheres() {
     camera.render_scene(world);
 }
 
-void scene_from_book() {
+void scene_from_book(bool test_moving_spheres = true) {
     double aspect_ratio = 16.0 / 9.0;
     int image_width = 600;
     Point look_from(13, 2 ,3);
@@ -83,7 +83,14 @@ void scene_from_book() {
                     // diffuse
                     auto albedo = Color::random() * Color::random();
                     sphere_material = make_shared<Lambertian>(albedo);
-                    world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+
+                    if(test_moving_spheres) {
+                        auto center2 = center + Vec3(0, random_double(0,.5), 0); // vertical movement
+                        world.add(make_shared<MovingSphere>(center, center2, 0.2, sphere_material));
+                    }
+                    else {
+                        world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+                    }
                 } else if (choose_mat < 0.95) {
                     // metal
                     auto albedo = Color::random(0.5, 1);
