@@ -1,6 +1,9 @@
 #include <raytracer/camera.h>
 
 #include <iostream>
+#include <omp.h>
+#include <chrono>
+
 #include <raytracer/common.h>
 #include <raytracer/ray.h>
 #include <raytracer/vec3.h>
@@ -17,6 +20,13 @@ void Camera::initialize_camera_coordinate_system() {
     v = cross(w, u);
 }
 
+bool is_omp_enabled() {
+    #ifdef _OPENMP
+        return true;
+    #else
+        return false;
+    #endif
+}
 
 void Camera::initialize_pixel_deltas_and_location() {
     auto viewport_u = cam_params.vp_width() * u;
@@ -73,17 +83,43 @@ Ray Camera::get_ray(u_short i, u_short j) const {
 }
 
 void Camera::render_scene(const HittableList& world) {
+    if(is_omp_enabled()) 
+        std::clog << "Rendering with OpenMP using " << omp_get_max_threads() << " threads...\n";
+    else
+        std::clog << "Rendering without OpenMP...\n";
+
+    
+
+    std::vector<std::vector<Color>> framebuffer(img_params.height(), std::vector<Color>(img_params.width()));
+
+    auto render_pixel = [&framebuffer, this, &world](u_short ii, u_short jj) {
+        Color pixel_color(0, 0, 0);
+        for(u_short sample_idx = 0; sample_idx < samples_per_pixel; ++sample_idx) {
+            auto ray = get_ray(ii, jj);
+            pixel_color += ray_color(ray, world, max_depth);
+        } 
+        pixel_color /= double(samples_per_pixel);
+        framebuffer[jj][ii] = pixel_color;
+    };
+
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    #pragma omp parallel for collapse(2) schedule(dynamic,1)
+    for(u_short jj = 0; jj < img_params.height(); ++jj) {
+        for(u_short ii = 0; ii < img_params.width(); ++ii) {
+            render_pixel(ii, jj);
+        }
+    }
+
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto render_duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
+    std::clog << "\nRender time: " << render_duration << " seconds.\n";
+
     std::cout << "P3\n" << img_params.width() << ' ' << img_params.height() << "\n255\n";
     for(u_short jj = 0; jj < img_params.height(); ++jj) {
-        std::clog << "\rScanlines remaining: " << (img_params.height() - jj) << ' ' << std::flush;
         for(u_short ii = 0; ii < img_params.width(); ++ii) {
-            Color pixel_color(0, 0, 0);
-            for(u_short sample_idx = 0; sample_idx < samples_per_pixel; ++sample_idx) {
-                auto ray = get_ray(ii, jj);
-                pixel_color += ray_color(ray, world, max_depth);
-            } 
-            pixel_color /= double(samples_per_pixel);
-            write_color(std::cout, pixel_color);
+            write_color(std::cout, framebuffer[jj][ii]);
         }
     }
     std::clog << "\nDone.\n";
