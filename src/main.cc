@@ -5,10 +5,11 @@
 #include <raytracer/sphere.h>
 #include <raytracer/camera.h>
 #include <raytracer/material.h>
+#include <raytracer/rand_utils.h>
 
 
 
-int main() {
+void scene_3_spheres() {
     double aspect_ratio = 16.0 / 9.0;
     int image_width = 400;
     Point look_from(-2, 2, 1);
@@ -43,5 +44,76 @@ int main() {
     
     // Render
     camera.render_scene(world);
+}
+
+void scene_from_book() {
+    double aspect_ratio = 16.0 / 9.0;
+    int image_width = 600;
+    Point look_from(13, 2 ,3);
+    Point look_at(0, 0, 0);
+    double vpov = 20.0; // vertical point of view in degrees
+    double defocus_angle = 0.6; // in degrees
+    double focus_dist = 10.0;
+    
+    auto camera = Camera::create_camera(
+        look_from, 
+        look_at,
+        vpov, defocus_angle, focus_dist,
+        RenderImageParams(image_width, aspect_ratio)
+    );
+
+    camera.set_samples_per_pixel(10);
+    
+
+    // World
+    HittableList world;
+
+    auto ground_material = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    world.add(make_shared<Sphere>(Point(0,-1000,0), 1000, ground_material));
+
+    for (int a = -11; a < 11; a++) {
+        for (int b = -11; b < 11; b++) {
+            auto choose_mat = random_double();
+            Point center(a + 0.9*random_double(), 0.2, b + 0.9*random_double());
+
+            if ((center - Point(4, 0.2, 0)).len() > 0.9) {
+                shared_ptr<Material> sphere_material;
+
+                if (choose_mat < 0.8) {
+                    // diffuse
+                    auto albedo = Color::random() * Color::random();
+                    sphere_material = make_shared<Lambertian>(albedo);
+                    world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+                } else if (choose_mat < 0.95) {
+                    // metal
+                    auto albedo = Color::random(0.5, 1);
+                    auto fuzz = random_double(0, 0.5);
+                    sphere_material = make_shared<Metal>(albedo, fuzz);
+                    world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+                } else {
+                    // glass
+                    sphere_material = make_shared<Dielectric>(1.5);
+                    world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+                }
+            }
+        }
+    }
+
+    auto material1 = make_shared<Dielectric>(1.5);
+    world.add(make_shared<Sphere>(Point(0, 1, 0), 1.0, material1));
+    auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+    world.add(make_shared<Sphere>(Point(-4, 1, 0), 1.0, material2));
+    auto material3 = make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+    world.add(make_shared<Sphere>(Point(4, 1, 0), 1.0, material3));
+
+
+    // Render
+    camera.render_scene(world);
+}
+
+
+int main() {
+    scene_from_book();
+    // scene_3_spheres();
     return 0;
 }
