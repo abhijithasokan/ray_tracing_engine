@@ -11,7 +11,7 @@
 
 void scene_3_spheres() {
     double aspect_ratio = 16.0 / 9.0;
-    int image_width = 400;
+    int image_width = 600;
     Point look_from(-2, 2, 1);
     Point look_at(0, 0, -1);
     double vpov = 20.0; // vertical point of view in degrees
@@ -25,7 +25,7 @@ void scene_3_spheres() {
         RenderImageParams(image_width, aspect_ratio)
     );
 
-    camera.set_samples_per_pixel(10);
+    camera.set_samples_per_pixel(50);
     
     // World
     HittableList world;
@@ -120,7 +120,7 @@ void scene_from_book(bool test_moving_spheres = true) {
 
 
 int main() {
-    scene_from_book();
-    // scene_3_spheres();
+    // scene_from_book();
+    scene_3_spheres();
     return 0;
 }

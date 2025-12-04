@@ -2,3 +2,4 @@ log.txt
 
 build/
 /*.ppm
+generated_images/
